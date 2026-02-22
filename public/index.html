@@ -1,9 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Departure Monitor</title>
 
     <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
@@ -208,6 +207,103 @@
         .close-map-btn:hover {
             color: #fff;
         }
+
+        @media screen and (max-width: 480px) {
+            
+            header {
+                padding: 10px 0 8px 0 !important;
+            }
+
+            #station-title {
+                font-size: 1rem !important;
+                letter-spacing: 1px;
+            }
+
+            #live-clock {
+                font-size: 18px !important;
+                padding-left: 10px !important;
+            }
+
+            .departures {
+                display: grid !important;
+                grid-template-areas: 
+                    "line delay"
+                    "dir time";
+                grid-template-columns: 1fr auto;
+                gap: 4px;
+                padding: 12px 0;
+                font-size: 1.1rem;
+            }
+
+            .line {
+                grid-area: line;
+                width: auto !important;
+                font-size: 1.2rem;
+            }
+            .delay {
+                grid-area: delay;
+                width: auto !important;
+                text-align: right;
+            }
+            .dir { 
+                grid-area: dir; 
+                width: auto !important; 
+                font-size: 0.9rem; 
+                color: #bbb; 
+                padding-top: 2px;
+            }
+            .time  {
+                grid-area: time;
+                width: auto !important;
+                text-align: right;
+            }
+
+            .location-row {
+                padding-left: 0 !important;
+                padding-top: 10px;
+                font-size: 11px;
+            }
+
+            footer {
+                font-size: 11px !important;
+            }
+
+            .footer-btn {
+                padding: 6px 0 !important;
+                margin: 0 5px !important;
+                width: 90% !important;
+                font-size: 10px !important;
+            }
+
+            #sync-status {
+                font-size: 10px !important;
+            }
+
+            #board {
+                padding-bottom: 80px !important;
+            }
+
+            #search-modal, #map-modal {
+                top: 0 !important;
+                left: 0 !important;
+                transform: none !important;
+                width: 100% !important;
+                height: 100% !important;
+                padding: 60px 20px 20px 20px !important;
+                border: none !important;
+                box-sizing: border-box;
+            }
+
+            .map-header {
+                font-size: 1.2rem !important;
+            }
+
+            input {
+                font-size: 1.2rem !important;
+                padding: 15px !important;
+                background: #111 !important;
+            }
+        }
     </style>
 </head>
 <body>
@@ -231,185 +327,238 @@
 
     <footer>
         <div class="footer-btn" onclick="openSearch()">Search [S]</div>
-        <div class="footer-btn" onclick="updateDashboard()">Refresh [R]</div>
+        <div class="footer-btn" onclick="refreshNow()">Refresh [R]</div>
         <div id="sync-status">LIVE</div>
     </footer>
 
     <div id="search-modal">
-        <div style="color: #fdb913; margin-bottom: 20px; font-weight: bold; font-size: 1.4rem;">
-            STATION SEARCH
+        <div class="map-header">
+            <span id="search-info">STATION SEARCH</span>
+            <span class="close-map-btn" onclick="closeSearch()">Close [ESC]</span>
         </div>
-        <input type="text" id="search-input" placeholder="Enter station name..." autocomplete="off" />
+        <div style="margin-top: 20px;">
+            <input type="text" id="search-input" placeholder="Enter station name..." autocomplete="off" />
+        </div>
     </div>
 
     <script>
-        const State = {
+        const App = {
             currentStation: null,
-            refreshInterval: 30000,
+            refreshIntervalMs: 30000,
             map: null,
-            marker: null
+            marker: null,
+            busIcon: L.icon({
+                iconUrl: "bus.png",
+                iconSize: [50, 50],
+                iconAnchor: [25, 40]
+            })
+        };
+
+        const ui = {
+            stationTitle: document.getElementById("station-title"),
+            clock: document.getElementById("live-clock"),
+            board: document.getElementById("board"),
+            status: document.getElementById("sync-status"),
+            searchInput: document.getElementById("search-input"),
+            modalOverlay: document.getElementById("modal-overlay"),
+            mapModal: document.getElementById("map-modal"),
+            searchModal: document.getElementById("search-modal"),
+            mapContainerId: "map-container"
         };
 
         function normalizeStationName(name) {
             if (!name) return "";
-            
-            let formatted = name
+            let s = String(name)
                 .replace(/-/g, " ")
                 .replace(/\//g, " ")
-                .replace(/\(/g, " (")
-                .replace(/\)/g, ") ");
-
+                .replace(/\s*\(\s*/g, " (")
+                .replace(/\s*\)\s*/g, ") ");
+            s = s.replace(/\s+/g, " ").trim();
             const hubs = ["hbf", "airport", "altona", "dammtor", "harburg"];
-            if (hubs.some(hub => formatted.toLowerCase().includes(hub))) {
-                return formatted.replace(/\s+/g, " ").trim();
-            }
-
-            return formatted.split(/\s+/)
-                .filter(word => !["hamburg", "hh"].includes(word.toLowerCase().trim()))
-                .join(" ")
-                .trim();
+            if (hubs.some(h => s.toLowerCase().includes(h))) return s;
+            return s.split(/\s+/).filter(w => !["hamburg", "hh"].includes(w.toLowerCase())).join(" ").trim();
         }
 
-        function getLineDesign(dep) {
-            const name = (dep.line?.name || "").replace(/^BUS\s+/i, "");
-            
-            if (name.startsWith("U")) return { name, color: "#006192" };
-            if (name.startsWith("S")) return { name, color: "#2ea13d" };
-            if (name.startsWith("A")) return { name, color: "#fdb913" };
-            if (name.startsWith("ICE")) return { name, color: "#ffffff" };
-            if (name.match(/^(RE|RB)/i)) return { name, color: "#af00af" };
-            
-            return { name, color: "#e2001a" };
+        function getLineStyle(departure) {
+            const raw = String((departure.line && departure.line.name) || "");
+            const name = raw.replace(/^BUS\s+/i, "");
+            if (name.startsWith("U")) return { text: name, color: "#006192" };
+            if (name.startsWith("S")) return { text: name, color: "#2ea13d" };
+            if (name.startsWith("A")) return { text: name, color: "#fdb913" };
+            if (name.startsWith("ICE")) return { text: name, color: "#ffffff" };
+            if (/^(RE|RB)/i.test(name)) return { text: name, color: "#af00af" };
+            return { text: name || "-", color: "#e2001a" };
         }
 
-        async function performSearch(query, updateUrl = true) {
-            const status = document.getElementById("sync-status");
-            status.innerText = "SEARCHING...";
+        function formatTime(iso) {
+            if (!iso) return "-";
+            const d = new Date(iso);
+            if (isNaN(d)) return "-";
+            return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
 
+        function computeDelayMinutes(seconds) {
+            if (seconds == null) return 0;
+            const mins = Math.round(Number(seconds) / 60);
+            return isFinite(mins) ? mins : 0;
+        }
+
+        async function searchStations(query, updateUrl = true) {
+            ui.status.innerText = "SEARCHING...";
             try {
                 const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                const results = await res.json();
-                const station = results.find(r => r.type === "station" || r.type === "stop");
-
-                if (station) {
-                    State.currentStation = station;
-                    if (updateUrl) {
-                        const newUrl = new URL(window.location);
-                        newUrl.searchParams.set('q', query);
-                        window.history.pushState({}, '', newUrl);
-                    }
-                    updateDashboard();
-                } else {
-                    status.innerText = "NOT FOUND";
+                if (!res.ok) throw new Error("search failed");
+                const list = await res.json();
+                const found = Array.isArray(list) ? list.find(r => r.type === "station" || r.type === "stop") : null;
+                if (!found) {
+                    ui.status.innerText = "NOT FOUND";
+                    return;
                 }
+                App.currentStation = found;
+                if (updateUrl) {
+                    const u = new URL(window.location);
+                    u.searchParams.set("q", query);
+                    window.history.pushState({}, "", u);
+                }
+                await refreshNow();
             } catch (e) {
-                status.innerText = "SEARCH ERROR";
+                ui.status.innerText = "SEARCH ERROR";
             }
         }
 
-        async function updateDashboard() {
-            if (!State.currentStation) return;
-            
-            const status = document.getElementById("sync-status");
-            status.innerText = "UPDATING...";
+        async function fetchDepartures(stationId) {
+            const res = await fetch(`/api/departures?stationId=${encodeURIComponent(stationId)}`);
+            if (!res.ok) throw new Error("fetch departures failed");
+            return await res.json();
+        }
 
+        function clearBoard() {
+            while (ui.board.firstChild) ui.board.removeChild(ui.board.firstChild);
+        }
+
+        function createDepartureRow(dep) {
+            const wrapper = document.createElement("div");
+            wrapper.style.borderBottom = "1px solid #222";
+
+            const row = document.createElement("div");
+            row.className = "departures";
+            row.style.borderBottom = "none";
+
+            const style = getLineStyle(dep);
+            const lineDiv = document.createElement("div");
+            lineDiv.className = "line";
+            lineDiv.textContent = style.text;
+            lineDiv.style.color = style.color;
+
+            const dirDiv = document.createElement("div");
+            dirDiv.className = "dir";
+            dirDiv.textContent = normalizeStationName(dep.direction);
+
+            const timeDiv = document.createElement("div");
+            timeDiv.className = "time";
+            timeDiv.textContent = formatTime(dep.when || dep.plannedWhen);
+
+            const delayMinutes = computeDelayMinutes(dep.delay);
+            const delayDiv = document.createElement("div");
+            delayDiv.className = "delay " + (delayMinutes > 0 ? "red" : "green");
+            delayDiv.textContent = delayMinutes > 0 ? `+${delayMinutes}m` : "OK";
+
+            row.appendChild(lineDiv);
+            row.appendChild(dirDiv);
+            row.appendChild(timeDiv);
+            row.appendChild(delayDiv);
+            wrapper.appendChild(row);
+
+            const pos = dep.location || dep.currentTripPosition;
+            if (pos && typeof pos.latitude === "number" && typeof pos.longitude === "number") {
+                const locRow = document.createElement("div");
+                locRow.className = "location-row";
+                locRow.style.cursor = "pointer";
+                locRow.textContent = "Show on map";
+                locRow.addEventListener("click", () => openMap(pos.latitude, pos.longitude));
+                wrapper.appendChild(locRow);
+            }
+
+            return wrapper;
+        }
+
+        async function renderBoard(departures) {
+            clearBoard();
+            if (!Array.isArray(departures) || departures.length === 0) {
+                const empty = document.createElement("div");
+                empty.style.padding = "20px 0";
+                empty.textContent = "No departures";
+                ui.board.appendChild(empty);
+                return;
+            }
+
+            departures.sort((a, b) => {
+                const ta = new Date(a.when || a.plannedWhen);
+                const tb = new Date(b.when || b.plannedWhen);
+                return ta - tb;
+            });
+
+            const frag = document.createDocumentFragment();
+            for (const d of departures) {
+                frag.appendChild(createDepartureRow(d));
+            }
+            ui.board.appendChild(frag);
+        }
+
+        async function refreshNow() {
+            if (!App.currentStation) return;
+            ui.status.innerText = "UPDATING...";
             try {
-                const res = await fetch(`/api/departures?stationId=${State.currentStation.id}`);
-                const departures = await res.json();
-                
-                departures.sort((a, b) => {
-                    const timeA = new Date(a.when || a.plannedWhen);
-                    const timeB = new Date(b.when || b.plannedWhen);
-                    return timeA - timeB;
-                });
-
-                document.getElementById("station-title").innerText = 
-                    normalizeStationName(State.currentStation.name);
-
-                const board = document.getElementById("board");
-                board.innerHTML = departures.map(dep => {
-                    const design = getLineDesign(dep);
-                    const time = new Date(dep.when || dep.plannedWhen).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const delay = dep.delay !== null ? Math.round(dep.delay / 60) : 0;
-                    
-                    let locationHTML = "";
-                    const pos = dep.location || dep.currentTripPosition;
-
-                    if (pos && pos.latitude && pos.longitude) {
-                        const lat = pos.latitude;
-                        const lon = pos.longitude;
-                        
-                        locationHTML = `
-                            <div class="location-row" onclick="openMap(${lat}, ${lon})" style="cursor:pointer">
-                                <span>Show on map</span>
-                            </div>`;
-                    }
-
-                    return `
-                        <div style="border-bottom: 1px solid #222;">
-                            <div class="departures" style="border-bottom: none;">
-                                <div class="line" style="color: ${design.color}">${design.name}</div>
-                                <div class="dir">${normalizeStationName(dep.direction)}</div>
-                                <div class="time">${time}</div>
-                                <div class="delay ${delay > 0 ? 'red' : 'green'}">
-                                    ${delay > 0 ? '+' + delay + 'm' : 'OK'}
-                                </div>
-                            </div>
-                            ${locationHTML}
-                        </div>`;
-                }).join("");
-
-                status.innerText = "LIVE";
+                const departures = await fetchDepartures(App.currentStation.id);
+                ui.stationTitle.innerText = normalizeStationName(App.currentStation.name);
+                await renderBoard(departures);
+                ui.status.innerText = "LIVE";
             } catch (e) {
-                status.innerText = "ERROR";
+                ui.status.innerText = "ERROR";
             }
         }
-
-        var busIcon = L.icon({
-            iconUrl: "bus.png",
-            iconSize: [50, 50],
-            iconAnchor: [25, 40]
-        });
 
         function openMap(lat, lon) {
-            document.getElementById("map-modal").style.display = "block";
-            document.getElementById("modal-overlay").style.display = "block";
-
+            ui.mapModal.style.display = "block";
+            ui.modalOverlay.style.display = "block";
             setTimeout(() => {
-                if (!State.map) {
-                    State.map = L.map('map-container').setView([lat, lon], 15);
-                    L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
-                        attribution: '© OpenStreetMap'
-                    }).addTo(State.map);
-                    State.marker = L.marker([lat, lon], {icon: busIcon}).addTo(State.map);
+                if (!App.map) {
+                    App.map = L.map(ui.mapContainerId).setView([lat, lon], 15);
+                    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
+                        attribution: "© OpenStreetMap"
+                    }).addTo(App.map);
+                    App.marker = L.marker([lat, lon], { icon: App.busIcon }).addTo(App.map);
                 } else {
-                    State.map.setView([lat, lon], 15);
-                    State.marker.setLatLng([lat, lon]);
-                    State.map.invalidateSize();
+                    App.map.setView([lat, lon], 15);
+                    if (!App.marker) App.marker = L.marker([lat, lon], { icon: App.busIcon }).addTo(App.map);
+                    else App.marker.setLatLng([lat, lon]);
+                    App.map.invalidateSize();
                 }
             }, 200);
         }
 
         function closeMap() {
-            document.getElementById("map-modal").style.display = "none";
-            document.getElementById("modal-overlay").style.display = "none";
+            ui.mapModal.style.display = "none";
+            ui.modalOverlay.style.display = "none";
         }
 
         function openSearch() {
-            document.getElementById("search-modal").style.display = "block";
-            document.getElementById("modal-overlay").style.display = "block";
-            document.getElementById("search-input").focus();
+            ui.searchModal.style.display = "block";
+            ui.modalOverlay.style.display = "block";
+            setTimeout(() => ui.searchInput.focus(), 100);
         }
 
         function closeSearch() {
-            document.getElementById("search-modal").style.display = "none";
-            document.getElementById("modal-overlay").style.display = "none";
-            document.getElementById("search-input").value = "";
+            ui.searchModal.style.display = "none";
+            ui.modalOverlay.style.display = "none";
+            ui.searchInput.value = "";
+            if (document.activeElement) document.activeElement.blur();
         }
 
         function closeAllModals() {
             closeSearch();
             closeMap();
+            if (document.activeElement) document.activeElement.blur();
         }
 
         window.addEventListener("keydown", (e) => {
@@ -418,37 +567,41 @@
                 return;
             }
 
-            const isModalOpen = document.getElementById("search-modal").style.display === "block" || 
-                               document.getElementById("map-modal").style.display === "block";
-            
-            if (isModalOpen) return;
+            const searchOpen = ui.searchModal.style.display === "block" || ui.mapModal.style.display === "block";
+            if (searchOpen) return;
 
-            if (e.key.toLowerCase() === 's') {
+            const k = e.key.toLowerCase();
+            if (k === "s") {
                 e.preventDefault();
                 openSearch();
             }
-            if (e.key.toLowerCase() === 'r') {
-                updateDashboard();
+            if (k === "r") {
+                refreshNow();
             }
         });
 
-        document.getElementById("search-input").addEventListener("keypress", (e) => {
+        ui.searchInput.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
-                const query = e.target.value.trim();
-                if (query) performSearch(query);
+                const q = ui.searchInput.value.trim();
+                if (!q) return;
+                searchStations(q);
                 closeSearch();
             }
         });
 
-        setInterval(() => {
-            document.getElementById("live-clock").innerText = 
-                new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }, 1000);
+        function updateClock() {
+            ui.clock.innerText = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
 
-        const urlParams = new URLSearchParams(window.location.search);
-        performSearch(urlParams.get('q') || "Hamburg Hbf", false);
-        
-        setInterval(updateDashboard, State.refreshInterval);
+        updateClock();
+        setInterval(updateClock, 1000);
+        setInterval(() => {
+            if (App.currentStation) refreshNow();
+        }, App.refreshIntervalMs);
+
+        const params = new URLSearchParams(window.location.search);
+        const initialQuery = params.get("q") || "Hamburg Hbf";
+        searchStations(initialQuery, false);
     </script>
 </body>
 </html>

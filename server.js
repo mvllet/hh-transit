@@ -1,4 +1,4 @@
-import express from 'express';
+import express from "express";
 import { createClient } from "hafas-client";
 import { profile as nahshProfile } from "hafas-client/p/nahsh/index.js";
 
@@ -7,69 +7,67 @@ const port = 3000;
 
 const hafas = createClient(nahshProfile, "hvv-monitor-web");
 
-app.use(express.static('public'));
+app.use(express.static("public"));
 
 async function findStation(query) {
     if (!query) return null;
     const results = await hafas.locations(query, { results: 5 });
-    return results.find(r => r.type === "station" || r.type === "stop") || results[0];
+    return (results || []).find(r => r.type === "station" || r.type === "stop") || results[0] || null;
 }
 
-app.get('/api/search', async (req, res) => {
+app.get("/api/search", async (req, res) => {
     try {
-        const { q } = req.query;
+        const q = String(req.query.q || "").trim();
         if (!q) return res.json([]);
-        
-        const results = await hafas.locations(q, { results: 5 });
-        res.json(results);
-    } catch (error) {
-        console.error("HAFAS Search Error:", error.message);
-        res.status(500).json({ error: "Search failed" });
+        const results = await hafas.locations(q, { results: 8 });
+        return res.json(results || []);
+    } catch (err) {
+        console.error("HAFAS Search Error:", err && err.stack || err);
+        return res.status(500).json({ error: "Search failed" });
     }
 });
 
-app.get('/api/departures', async (req, res) => {
+app.get("/api/departures", async (req, res) => {
     try {
-        const { stationId } = req.query;
+        const stationId = String(req.query.stationId || "").trim();
         if (!stationId) return res.status(400).json({ error: "Missing stationId" });
 
-        const response = await hafas.departures(stationId, { 
+        const response = await hafas.departures(stationId, {
             duration: 60,
             remarks: true
         });
-        
-        res.json(response.departures || []);
-    } catch (error) {
-        console.error("HAFAS Departures Error:", error.message);
-        res.status(500).json({ error: "Failed to fetch departures" });
+
+        return res.json(response && response.departures ? response.departures : []);
+    } catch (err) {
+        console.error("HAFAS Departures Error:", err && err.stack || err);
+        return res.status(500).json({ error: "Failed to fetch departures" });
     }
 });
 
-app.get('/api/planner', async (req, res) => {
+app.get("/api/planner", async (req, res) => {
     try {
-        const { from, to } = req.query;
+        const from = String(req.query.from || "").trim();
+        const to = String(req.query.to || "").trim();
         if (!from || !to) return res.status(400).json({ error: "Missing from or to" });
 
         const origin = await findStation(from);
         const destination = await findStation(to);
 
-        if (!origin || !destination) {
-            return res.status(404).json({ error: "Station not found" });
-        }
+        if (!origin || !destination) return res.status(404).json({ error: "Station not found" });
 
         const response = await hafas.journeys(origin.id, destination.id, {
             results: 4,
-            walkingSpeed: 'normal'
+            walkingSpeed: "normal"
         });
 
-        res.json({
+        return res.json({
             origin,
             destination,
-            journeys: response.journeys || []
+            journeys: response && response.journeys ? response.journeys : []
         });
-    } catch (error) {
-        console.error("HAFAS Planner Error:", error.message);
-        res.status(500).json({ error: "Route planning failed" });
+    } catch (err) {
+        console.error("HAFAS Planner Error:", err && err.stack || err);
+        return res.status(500).json({ error: "Route planning failed" });
     }
 });
 

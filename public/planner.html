@@ -1,9 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>Route Planner</title>
 
     <style>
@@ -77,17 +76,10 @@
             align-items: center;
         }
 
-        .leg-row:last-child {
-            border-bottom: none;
-        }
+        .leg-row:last-child { border-bottom: none; }
 
-        .line {
-            font-weight: bold;
-        }
-
-        .time {
-            font-weight: bold;
-        }
+        .line { font-weight: bold; }
+        .time { font-weight: bold; }
 
         .path {
             white-space: nowrap;
@@ -96,6 +88,8 @@
             color: #aaa;
             padding: 0 10px;
         }
+
+        .dest { padding-left: 0 !important; }
 
         .delay {
             text-align: right;
@@ -112,12 +106,12 @@
             left: 0;
             width: 100%;
             background: #111;
-            padding: 15px 0; 
+            padding: 15px 0;
             color: #888;
             font-size: 16px;
             border-top: 2px solid #444;
             display: grid;
-            grid-template-columns: repeat(3, 1fr); 
+            grid-template-columns: repeat(3, 1fr);
             align-items: center;
             justify-items: center;
             z-index: 200;
@@ -133,7 +127,6 @@
             text-transform: uppercase;
             font-weight: bold;
             font-family: monospace;
-            transition: all 0.1s;
         }
 
         #sync-status {
@@ -155,23 +148,37 @@
             z-index: 1000;
             width: 90%;
             max-width: 600px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 1);
+            box-shadow: 0 0 50px rgba(0,0,0,1);
+            box-sizing: border-box;
         }
+
+        #search-modal .map-header {
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: #fdb913;
+            font-weight: bold;
+            font-size: 1.4rem;
+        }
+
+        #search-modal .close-map-btn {
+            cursor: pointer;
+            color: #aaa;
+            font-size: 1.2rem;
+        }
+
+        #search-modal .close-map-btn:hover { color: #fff; }
 
         .modal-overlay {
             display: none;
             position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
+            inset: 0;
+            background: rgba(0,0,0,0.9);
             z-index: 900;
         }
 
-        .field {
-            margin-bottom: 20px;
-        }
+        .field { margin-bottom: 20px; }
 
         .label {
             color: #fdb913;
@@ -194,15 +201,68 @@
             outline: none;
         }
 
-        input:focus {
-            border-color: #fdb913;
+        input:focus { border-color: #fdb913; }
+
+        .plan-btn {
+            width: 100%;
+            margin-top: 20px;
+            box-sizing: border-box;
         }
 
-        @media (max-width: 1000px) {
+        @media screen and (max-width: 480px) {
+            header { padding: 10px 0 8px 0 !important; }
+            #station-title { font-size: 1rem !important; letter-spacing: 1px; }
+            #live-clock { font-size: 18px !important; padding-left: 10px !important; }
+            #board { padding-bottom: 90px !important; }
+            .journey-box { margin-top: 15px !important; margin-bottom: 25px !important; }
+            .option-label { font-size: 1rem !important; padding: 10px !important; }
             .leg-row {
-                grid-template-columns: 100px 80px 1fr 80px 1fr 70px;
-                font-size: 1.1rem;
+                display: grid !important;
+                grid-template-areas:
+                    "line delay"
+                    "dest dep"
+                    "origin arr";
+                grid-template-columns: 1fr auto;
+                gap: 4px;
+                padding: 12px 10px !important;
+                font-size: 1rem !important;
             }
+            .leg-row > :nth-child(1) { grid-area: line; }
+            .leg-row > :nth-child(6) { grid-area: delay; text-align: right; }
+            .leg-row > :nth-child(3) { grid-area: dest; padding: 0 !important; font-size: 0.9rem; color: #bbb; }
+            .leg-row > :nth-child(2) { grid-area: dep; text-align: right; }
+            .leg-row > :nth-child(5) { grid-area: origin; padding: 0 !important; font-size: 0.9rem; color: #bbb; }
+            .leg-row > :nth-child(4) { grid-area: arr; text-align: right; }
+            footer { font-size: 11px !important; }
+            .footer-btn { padding: 6px 0 !important; margin: 0 5px !important; width: 90% !important; font-size: 10px !important; }
+            #sync-status { font-size: 10px !important; }
+            #search-modal {
+                top: 0 !important;
+                left: 0 !important;
+                transform: none !important;
+                width: 100% !important;
+                height: 100% !important;
+                padding: 60px 20px 20px 20px !important;
+                border: none !important;
+            }
+            input { font-size: 1.2rem !important; padding: 15px !important; background: #111 !important; }
+            .plan-btn {
+                display: block;
+                width: 100% !important;
+                box-sizing: border-box;
+                text-align: center;
+                padding: 12px 0;
+                margin: 0 !important;
+                background: #1a1a1a;
+                color: #fff;
+                font-weight: bold;
+                text-transform: uppercase;
+                border: 1px solid #444;
+                font-family: monospace;
+                cursor: pointer;
+                transition: all 0.1s;
+            }
+            .plan-btn:hover { background: #222; border-color: #fdb913; }
         }
     </style>
 </head>
@@ -219,140 +279,202 @@
 
     <footer>
         <div class="footer-btn" onclick="openSearch()">Search [S]</div>
-        <div class="footer-btn" onclick="refreshRoute()">Refresh [R]</div>
+        <div class="footer-btn" onclick="refreshNow()">Refresh [R]</div>
         <div id="sync-status">READY</div>
     </footer>
 
     <div id="search-modal">
-        <div class="field">
-            <div class="label">From:</div>
-            <input type="text" id="input-from" placeholder="Origin..." autocomplete="off" />
+        <div class="map-header">
+            <span id="search-info">STATION SEARCH</span>
+            <span class="close-map-btn" onclick="closeSearch()">Close [ESC]</span>
         </div>
-        <div class="field">
-            <div class="label">To:</div>
-            <input type="text" id="input-to" placeholder="Destination..." autocomplete="off" />
+        <div style="margin-top: 20px;">
+            <div class="field">
+                <div class="label">From:</div>
+                <input type="text" id="input-from" placeholder="Origin..." autocomplete="off" />
+            </div>
+            <div class="field">
+                <div class="label">To:</div>
+                <input type="text" id="input-to" placeholder="Destination..." autocomplete="off" />
+            </div>
+            <div class="footer-btn plan-btn" onclick="triggerSearch()">Plan Route</div>
         </div>
-        <div class="footer-btn" style="text-align: center; margin-top: 10px; width: 100%; box-sizing: border-box;" onclick="triggerSearch()">Plan Route</div>
     </div>
 
     <script>
-        const State = {
+        const App = {
             lastFrom: "",
             lastTo: ""
         };
 
+        const ui = {
+            stationTitle: document.getElementById("station-title"),
+            clock: document.getElementById("live-clock"),
+            board: document.getElementById("board"),
+            status: document.getElementById("sync-status"),
+            fromInput: document.getElementById("input-from"),
+            toInput: document.getElementById("input-to"),
+            modalOverlay: document.getElementById("modal-overlay"),
+            searchModal: document.getElementById("search-modal")
+        };
+
         function normalizeStationName(name) {
             if (!name) return "";
-            let formatted = name.replace(/-/g, " ").replace(/\//g, " ").replace(/\(/g, " (").replace(/\)/g, ") ");
+            let s = String(name)
+                .replace(/-/g, " ")
+                .replace(/\//g, " ")
+                .replace(/\s*\(\s*/g, " (")
+                .replace(/\s*\)\s*/g, ") ");
+            s = s.replace(/\s+/g, " ").trim();
             const hubs = ["hbf", "airport", "altona", "dammtor", "harburg"];
-            if (hubs.some(hub => formatted.toLowerCase().includes(hub))) {
-                return formatted.replace(/\s+/g, " ").trim();
-            }
-            return formatted.split(/\s+/).filter(word => !["hamburg", "hh"].includes(word.toLowerCase().trim())).join(" ").trim();
+            if (hubs.some(h => s.toLowerCase().includes(h))) return s;
+            return s.split(/\s+/).filter(w => !["hamburg", "hh"].includes(w.toLowerCase())).join(" ").trim();
         }
 
-        function getLineDesign(leg) {
-            const name = (leg.line?.name || "WALK").replace(/^BUS\s+/i, "");
-            if (name === "WALK") return { name, color: "#777" };
-            if (name.startsWith("U")) return { name, color: "#006192" };
-            if (name.startsWith("S")) return { name, color: "#2ea13d" };
-            if (name.startsWith("A")) return { name, color: "#fdb913" };
-            if (name.startsWith("ICE")) return { name, color: "#ffffff" };
-            if (name.match(/^(RE|RB)/i)) return { name, color: "#af00af" };
-            return { name, color: "#e2001a" };
+        function getLineStyle(leg) {
+            const raw = String((leg && leg.line && leg.line.name) || "WALK");
+            const name = raw.replace(/^BUS\s+/i, "");
+            if (name === "WALK") return { text: "WALK", color: "#777" };
+            if (name.startsWith("U")) return { text: name, color: "#006192" };
+            if (name.startsWith("S")) return { text: name, color: "#2ea13d" };
+            if (name.startsWith("A")) return { text: name, color: "#fdb913" };
+            if (name.startsWith("ICE")) return { text: name, color: "#ffffff" };
+            if (/^(RE|RB)/i.test(name)) return { text: name, color: "#af00af" };
+            return { text: name || "-", color: "#e2001a" };
+        }
+
+        function formatTime(iso) {
+            if (!iso) return "-";
+            const d = new Date(iso);
+            if (isNaN(d)) return "-";
+            return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+
+        function computeDelayMinutes(seconds) {
+            if (seconds == null) return 0;
+            const mins = Math.round(Number(seconds) / 60);
+            return isFinite(mins) ? mins : 0;
         }
 
         async function calculateRoute(from, to, updateUrl = true) {
             if (!from || !to) return;
-            State.lastFrom = from;
-            State.lastTo = to;
-            const status = document.getElementById("sync-status");
-            status.innerText = "PLANNING...";
-
+            App.lastFrom = from;
+            App.lastTo = to;
+            ui.status.innerText = "PLANNING...";
             try {
                 const res = await fetch(`/api/planner?from=${encodeURIComponent(from)}&to=${encodeURIComponent(to)}`);
+                if (!res.ok) throw new Error("planner failed");
                 const data = await res.json();
-
                 if (updateUrl) {
-                    const url = new URL(window.location);
-                    url.searchParams.set('from', from);
-                    url.searchParams.set('to', to);
-                    window.history.pushState({}, '', url);
+                    const u = new URL(window.location);
+                    u.searchParams.set("from", from);
+                    u.searchParams.set("to", to);
+                    window.history.pushState({}, "", u);
                 }
-
-                const offFrom = data.origin?.name || from;
-                const offTo = data.destination?.name || to;
-                document.getElementById("station-title").innerText = `${normalizeStationName(offFrom)} > ${normalizeStationName(offTo)}`;
-                
-                renderResults(data.journeys.slice(0, 4));
-                status.innerText = "LIVE";
-            } catch (e) { 
-                status.innerText = "ERROR"; 
+                const offFrom = data && data.origin && data.origin.name ? data.origin.name : from;
+                const offTo = data && data.destination && data.destination.name ? data.destination.name : to;
+                ui.stationTitle.innerText = `${normalizeStationName(offFrom)} >> ${normalizeStationName(offTo)}`;
+                const journeys = Array.isArray(data && data.journeys) ? data.journeys.slice(0, 4) : [];
+                renderResults(journeys);
+                ui.status.innerText = "LIVE";
+            } catch (e) {
+                ui.status.innerText = "ERROR";
             }
         }
 
         function renderResults(journeys) {
-            const board = document.getElementById("board");
-            board.innerHTML = journeys.map((j, i) => {
-                const first = j.legs[0];
-                const last = j.legs[j.legs.length - 1];
-                const duration = Math.round((new Date(last.arrival) - new Date(first.departure)) / 60000);
-                const transfers = j.legs.filter(l => l.line).length - 1;
-
-                const legs = j.legs.map(leg => {
-                    const d = getLineDesign(leg);
-                    const depT = new Date(leg.departure).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const arrT = new Date(leg.arrival).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-                    const delay = leg.departureDelay ? Math.round(leg.departureDelay / 60) : 0;
-                    return `
-                        <div class="leg-row">
-                            <div class="line" style="color: ${d.color}">${d.name}</div>
-                            <div class="time">${depT}</div>
-                            <div class="path">${normalizeStationName(leg.origin.name)}</div>
-                            <div class="time">${arrT}</div>
-                            <div class="path">${normalizeStationName(leg.destination.name)}</div>
-                            <div class="delay ${delay > 0 ? 'red' : 'green'}">${delay > 0 ? '+' + delay + 'm' : 'OK'}</div>
-                        </div>`;
-                }).join("");
-
-                return `<div class="journey-box"><div class="option-label">Option ${i + 1} (${duration} MIN, ${transfers} TRANSFERS)</div>${legs}</div>`;
-            }).join("");
+            ui.board.innerHTML = "";
+            if (!Array.isArray(journeys) || journeys.length === 0) {
+                const empty = document.createElement("div");
+                empty.style.padding = "20px 0";
+                empty.textContent = "No routes";
+                ui.board.appendChild(empty);
+                return;
+            }
+            const frag = document.createDocumentFragment();
+            journeys.forEach((j, idx) => {
+                const legs = Array.isArray(j.legs) ? j.legs : [];
+                const first = legs[0];
+                const last = legs[legs.length - 1];
+                const duration = first && last ? Math.round((new Date(last.arrival) - new Date(first.departure)) / 60000) : 0;
+                const transfers = legs.filter(l => l.line).length - 1;
+                const box = document.createElement("div");
+                box.className = "journey-box";
+                const label = document.createElement("div");
+                label.className = "option-label";
+                label.textContent = `Option ${idx + 1} (${duration} MIN, ${Math.max(0, transfers)} TRANSFERS)`;
+                box.appendChild(label);
+                legs.forEach(leg => {
+                    const row = document.createElement("div");
+                    row.className = "leg-row";
+                    const style = getLineStyle(leg);
+                    const lineDiv = document.createElement("div");
+                    lineDiv.className = "line";
+                    lineDiv.textContent = style.text;
+                    lineDiv.style.color = style.color;
+                    const depTime = document.createElement("div");
+                    depTime.className = "time";
+                    depTime.textContent = formatTime(leg.departure);
+                    const origin = document.createElement("div");
+                    origin.className = "path";
+                    origin.textContent = leg.origin && leg.origin.name ? normalizeStationName(leg.origin.name) : "-";
+                    const arrTime = document.createElement("div");
+                    arrTime.className = "time";
+                    arrTime.textContent = formatTime(leg.arrival);
+                    const dest = document.createElement("div");
+                    dest.className = "path";
+                    dest.textContent = leg.destination && leg.destination.name ? normalizeStationName(leg.destination.name) : "-";
+                    const delayMinutes = computeDelayMinutes(leg.departureDelay);
+                    const delayDiv = document.createElement("div");
+                    delayDiv.className = "delay " + (delayMinutes > 0 ? "red" : "green");
+                    delayDiv.textContent = delayMinutes > 0 ? `+${delayMinutes}m` : "OK";
+                    row.appendChild(lineDiv);
+                    row.appendChild(depTime);
+                    row.appendChild(origin);
+                    row.appendChild(arrTime);
+                    row.appendChild(dest);
+                    row.appendChild(delayDiv);
+                    box.appendChild(row);
+                });
+                frag.appendChild(box);
+            });
+            ui.board.appendChild(frag);
         }
 
         function openSearch() {
-            document.getElementById("search-modal").style.display = "block";
-            document.getElementById("modal-overlay").style.display = "block";
-            document.getElementById("input-from").focus();
+            ui.searchModal.style.display = "block";
+            ui.modalOverlay.style.display = "block";
+            setTimeout(() => ui.fromInput.focus(), 100);
         }
 
         function closeSearch() {
-            document.getElementById("search-modal").style.display = "none";
-            document.getElementById("modal-overlay").style.display = "none";
-            document.getElementById("input-from").value = "";
-            document.getElementById("input-to").value = "";
+            ui.searchModal.style.display = "none";
+            ui.modalOverlay.style.display = "none";
+            ui.fromInput.value = "";
+            ui.toInput.value = "";
+            if (document.activeElement) document.activeElement.blur();
         }
 
         function triggerSearch() {
-            const f = document.getElementById("input-from").value.trim();
-            const t = document.getElementById("input-to").value.trim();
-            if (f && t) {
-                calculateRoute(f, t);
-                closeSearch();
-            }
+            const f = ui.fromInput.value.trim();
+            const t = ui.toInput.value.trim();
+            if (!f || !t) return;
+            calculateRoute(f, t);
+            closeSearch();
         }
 
-        function refreshRoute() {
-            if(State.lastFrom && State.lastTo) calculateRoute(State.lastFrom, State.lastTo);
+        function refreshNow() {
+            if (App.lastFrom && App.lastTo) calculateRoute(App.lastFrom, App.lastTo);
         }
 
-        document.getElementById("input-from").addEventListener("keydown", (e) => {
+        ui.fromInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
-                document.getElementById("input-to").focus();
+                ui.toInput.focus();
             }
         });
 
-        document.getElementById("input-to").addEventListener("keydown", (e) => {
+        ui.toInput.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
                 e.preventDefault();
                 triggerSearch();
@@ -360,23 +482,37 @@
         });
 
         window.addEventListener("keydown", (e) => {
-            const isModalOpen = document.getElementById("search-modal").style.display === "block";
-            if (isModalOpen) {
-                if (e.key === "Escape") closeSearch();
+            if (e.key === "Escape") {
+                closeSearch();
+                return;
+            }
+            const modalOpen = ui.searchModal.style.display === "block";
+            if (modalOpen) {
                 if (e.key === "Enter") triggerSearch();
                 return;
             }
-            if (e.key.toLowerCase() === 's') { e.preventDefault(); openSearch(); }
-            if (e.key.toLowerCase() === 'r') refreshRoute();
+            const k = e.key.toLowerCase();
+            if (k === "s") {
+                e.preventDefault();
+                openSearch();
+            }
+            if (k === "r") {
+                refreshNow();
+            }
         });
 
-        setInterval(() => {
-            document.getElementById("live-clock").innerText = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        }, 1000);
+        function updateClock() {
+            ui.clock.innerText = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+        }
+
+        updateClock();
+        setInterval(updateClock, 1000);
 
         const params = new URLSearchParams(window.location.search);
-        if (params.get('from') && params.get('to')) {
-            calculateRoute(params.get('from'), params.get('to'), false);
+        const fromParam = params.get("from");
+        const toParam = params.get("to");
+        if (fromParam && toParam) {
+            calculateRoute(fromParam, toParam, false);
         } else {
             openSearch();
         }
