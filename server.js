@@ -1,0 +1,79 @@
+import express from 'express';
+import { createClient } from "hafas-client";
+import { profile as nahshProfile } from "hafas-client/p/nahsh/index.js";
+
+const app = express();
+const port = 3000;
+
+const hafas = createClient(nahshProfile, "hvv-monitor-web");
+
+app.use(express.static('public'));
+
+async function findStation(query) {
+    if (!query) return null;
+    const results = await hafas.locations(query, { results: 5 });
+    return results.find(r => r.type === "station" || r.type === "stop") || results[0];
+}
+
+app.get('/api/search', async (req, res) => {
+    try {
+        const { q } = req.query;
+        if (!q) return res.json([]);
+        
+        const results = await hafas.locations(q, { results: 5 });
+        res.json(results);
+    } catch (error) {
+        console.error("HAFAS Search Error:", error.message);
+        res.status(500).json({ error: "Search failed" });
+    }
+});
+
+app.get('/api/departures', async (req, res) => {
+    try {
+        const { stationId } = req.query;
+        if (!stationId) return res.status(400).json({ error: "Missing stationId" });
+
+        const response = await hafas.departures(stationId, { duration: 60 });
+        res.json(response.departures || []);
+    } catch (error) {
+        console.error("HAFAS Departures Error:", error.message);
+        res.status(500).json({ error: "Failed to fetch departures" });
+    }
+});
+
+app.get('/api/planner', async (req, res) => {
+    try {
+        const { from, to } = req.query;
+        if (!from || !to) return res.status(400).json({ error: "Missing from or to" });
+
+        const origin = await findStation(from);
+        const destination = await findStation(to);
+
+        if (!origin || !destination) {
+            return res.status(404).json({ error: "Station not found" });
+        }
+
+        const response = await hafas.journeys(origin.id, destination.id, {
+            results: 4,
+            walkingSpeed: 'normal'
+        });
+
+        res.json({
+            origin,
+            destination,
+            journeys: response.journeys || []
+        });
+    } catch (error) {
+        console.error("HAFAS Planner Error:", error.message);
+        res.status(500).json({ error: "Route planning failed" });
+    }
+});
+
+app.listen(port, () => {
+    console.log(`
+HVV MONITOR WEB SERVER RUNNING
+
+General:  http://localhost:${port}/index.html
+Planner:  http://localhost:${port}/planner.html
+    `);
+});

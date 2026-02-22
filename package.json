@@ -1,0 +1,9 @@
+{
+  "name": "hvv-monitor-web",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.2.1",
+    "hafas-client": "^6.0.0"
+  }
+}
