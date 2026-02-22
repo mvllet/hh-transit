@@ -33,7 +33,11 @@ app.get('/api/departures', async (req, res) => {
         const { stationId } = req.query;
         if (!stationId) return res.status(400).json({ error: "Missing stationId" });
 
-        const response = await hafas.departures(stationId, { duration: 60 });
+        const response = await hafas.departures(stationId, { 
+            duration: 60,
+            remarks: true
+        });
+        
         res.json(response.departures || []);
     } catch (error) {
         console.error("HAFAS Departures Error:", error.message);

@@ -1,9 +1,11 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>Route Planner</title>
+
     <style>
         body {
             background: #0a0a0a;
@@ -110,29 +112,35 @@
             left: 0;
             width: 100%;
             background: #111;
-            padding: 20px 0;
+            padding: 15px 0; 
             color: #888;
-            font-size: 18px;
+            font-size: 16px;
             border-top: 2px solid #444;
-            display: flex;
-            justify-content: space-around;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr); 
             align-items: center;
+            justify-items: center;
             z-index: 200;
         }
 
         .footer-btn {
             cursor: pointer;
-            padding: 10px 25px;
+            padding: 12px 0;
+            width: 80%;
+            text-align: center;
             border: 1px solid #444;
             background: #1a1a1a;
             text-transform: uppercase;
             font-weight: bold;
+            font-family: monospace;
+            transition: all 0.1s;
         }
 
-        .footer-btn:active {
-            background: #fdb913;
-            color: #000;
-            border-color: #fdb913;
+        #sync-status {
+            font-weight: bold;
+            letter-spacing: 1px;
+            text-align: center;
+            width: 100%;
         }
 
         #search-modal {
