@@ -1,11 +1,12 @@
 import express from "express";
 import { createClient } from "hafas-client";
-import { profile as nahshProfile } from "hafas-client/p/nahsh/index.js";
+import { profile } from "hafas-client/p/nahsh/index.js";
 
 const app = express();
-const port = 3000;
 
-const hafas = createClient(nahshProfile, "hvv-monitor-web");
+const PORT = 3000;
+
+const hafas = createClient(profile, "hvv-monitor");
 
 app.use(express.static("public"));
 
@@ -71,11 +72,11 @@ app.get("/api/planner", async (req, res) => {
     }
 });
 
-app.listen(port, () => {
+app.listen(PORT, () => {
     console.log(`
-HVV MONITOR WEB SERVER RUNNING
+Server running on port ${PORT}
 
-General:  http://localhost:${port}/index.html
-Planner:  http://localhost:${port}/planner.html
+Departure Monitor:  http://localhost:${PORT}/index.html
+Route Planner:      http://localhost:${PORT}/planner.html
     `);
 });

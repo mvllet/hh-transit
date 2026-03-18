@@ -1,9 +1,20 @@
 {
-  "name": "hvv-monitor-web",
-  "version": "1.0.0",
+  "name": "hvv-monitor",
+  "version": "1.1.0",
+  "description": "Real-time, browser-based departure monitor and route planner for the hvv.",
+  "author": "Mullet",
+  "license": "SEE LICENSE IN LICENSE",
   "type": "module",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js"
+  },
   "dependencies": {
     "express": "^5.2.1",
     "hafas-client": "^6.0.0"
+  },
+  "engines": {
+    "node": ">=18.0.0"
   }
 }

@@ -1,6 +1,6 @@
-# hvv-monitor-web
+# hvv-monitor
 
-A real-time, browser-based departure board and journey planner for the Hamburg Public Transport Network (HVV). This suite provides a high-visibility interface for live departures and detailed route planning.
+This is a real-time, browser-based departure monitor and route planner for the Hamburg Public Transport Network (HVV). This suite offers an interface for live departures and detailed route planning.
 
 ## Table of Contents
 
@@ -26,7 +26,7 @@ A real-time, browser-based departure board and journey planner for the Hamburg P
 
 ## Prerequisites
 
-* **Node.js**: Version 20.20.0 or higher.
+* **Node.js**: Version 18.0.0 or higher.
 * **npm**: Node Package Manager.
 
 ## Installation
@@ -34,13 +34,13 @@ A real-time, browser-based departure board and journey planner for the Hamburg P
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/marshmallow868/hvv-monitor-web.git
+git clone https://github.com/mvllet/hvv-monitor.git
 ```
 
 2. Navigate into the project directory:
 
 ```bash
-cd hvv-monitor-web
+cd hvv-monitor
 ```
 
 3. Install dependencies:
