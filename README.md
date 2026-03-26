@@ -1,6 +1,6 @@
-# hvv-monitor
+# hh-transit
 
-This is a real-time, browser-based departure monitor and route planner for the Hamburg Public Transport Network (HVV). This suite offers an interface for live departures and detailed route planning.
+This is a real-time, browser-based departure monitor and route planner app for Hamburg's public transport system. This suite offers an interface for live departures and detailed route planning.
 
 ## Table of Contents
 
@@ -18,10 +18,7 @@ This is a real-time, browser-based departure monitor and route planner for the H
 ## Features
 
 * **Real-time Data Retrieval**: Fetches live data using the `hafas-client` library via a Node.js backend proxy.
-* **Fullscreen-Optimized Design**: High-contrast, monospace UI for readability on monitors and mobile devices.
-* **Accurate Line Representation**: Official HVV transit color codes for U-Bahn, S-Bahn, AKN, and Regional rail lines.
 * **Deep Linking**: URL parameters (`?q=` or `?from=&to=`) allow bookmarking stations or sharing routes.
-* **Sticky Navigation**: Fixed headers and footers for seamless control during scrolling.
 * **Journey Planning**: Search connections with transfer details, real-time status, and delay indicators.
 
 ## Prerequisites
@@ -34,13 +31,13 @@ This is a real-time, browser-based departure monitor and route planner for the H
 1. Clone the repository:
 
 ```bash
-git clone https://github.com/mvllet/hvv-monitor.git
+git clone https://github.com/mvllet/hh-transit.git
 ```
 
 2. Navigate into the project directory:
 
 ```bash
-cd hvv-monitor
+cd hh-transit
 ```
 
 3. Install dependencies:

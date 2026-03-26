@@ -6,7 +6,7 @@ const app = express();
 
 const PORT = 3000;
 
-const hafas = createClient(profile, "hvv-monitor");
+const hafas = createClient(profile, "hh-transit");
 
 app.use(express.static("public"));
 

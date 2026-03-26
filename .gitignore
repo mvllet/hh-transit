@@ -13,12 +13,12 @@
 .vscode/
 .cursor/
 
-# Node
+# Bun
 node_modules/
 dist/
-build/
+.bun-cache/
 .cache/
-npm-debug.log*
+bun.lockb
 .env
 .env.local
 .env.*.local
