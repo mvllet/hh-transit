@@ -1,93 +1,65 @@
-# hh-transit
+# HH Transit
 
-This is a real-time, browser-based departure monitor and route planner app for Hamburg's public transport system. This suite offers an interface for live departures and detailed route planning.
-
-## Table of Contents
-
-* [Features](#features)
-* [Prerequisites](#prerequisites)
-* [Installation](#installation)
-* [Usage](#usage)
-  * [Departure Monitor](#1-departure-monitor)
-  * [Route Planner](#2-route-planner)
-* [Controls](#controls)
-* [Configuration](#configuration)
-* [Contributing](#contributing)
-* [License](#license)
+Real-time browser departure monitor and route planner for Hamburg public transport.
 
 ## Features
 
-* **Real-time Data Retrieval**: Fetches live data using the `hafas-client` library via a Node.js backend proxy.
-* **Deep Linking**: URL parameters (`?q=` or `?from=&to=`) allow bookmarking stations or sharing routes.
-* **Journey Planning**: Search connections with transfer details, real-time status, and delay indicators.
+- Live departures for any Hamburg station
+- Journey planner between stations
+- Deep linking via URL parameters
+- Auto-refresh with real-time data
 
 ## Prerequisites
 
-* **Node.js**: Version 18.0.0 or higher.
-* **npm**: Node Package Manager.
+- [Bun](https://bun.sh) runtime
 
-## Installation
-
-1. Clone the repository:
+## Setup
 
 ```bash
-git clone https://github.com/mvllet/hh-transit.git
+bun install
 ```
 
-2. Navigate into the project directory:
+Create a `.env` file from the example:
 
 ```bash
-cd hh-transit
+cp .env.example .env
 ```
 
-3. Install dependencies:
+Configure optional environment variables:
 
 ```bash
-npm install
+# Server port (default: 3000)
+PORT=3000
 ```
 
-## Usage
-
-Start the server:
+## Run
 
 ```bash
-node server.js
+bun run server.ts
 ```
 
-Application will run at `http://localhost:3000`.
+Open in browser:
 
-### 1. Departure Monitor
+- Monitor: http://localhost:3000
+- Planner: http://localhost:3000/planner.html
 
-* **URL**: `http://localhost:3000/index.html`
-* **Query Support**: `index.html?q=Hamburg+Hbf`
+## Deep Linking
 
-### 2. Route Planner
+Bookmark stations or share routes via URL parameters:
 
-* **URL**: `http://localhost:3000/planner.html`
-* **Query Support**: `planner.html?from=Altona&to=Dammtor`
+```
+?q=Hamburg Hbf
+?from=Altona&to=Dammtor
+```
 
 ## Controls
 
-| Key       | Action                                                                           |
-| --------- | -------------------------------------------------------------------------------- |
-| **S**     | Open search modal / Plan new journey                                             |
-| **Enter** | **Monitor**: Confirm search <br> **Planner**: Jump to next field / Confirm route |
-| **Esc**   | Close modal without searching                                                    |
-| **R**     | Execute manual data refresh                                                      |
-
-## Configuration
-
-To modify the automated refresh interval (default 30s), edit the `refreshInterval` constant in the `<script>` section of the HTML files:
-
-```javascript
-const State = {
-    refreshInterval: 30000 // Time in milliseconds
-};
-```
-
-## Contributing
-
-Bug reports, feature requests, and code contributions are welcome. Open an issue to discuss proposed changes. Pull requests follow standard procedures.
+| Key | Action |
+|-----|--------|
+| S | Open search / planner modal |
+| Enter | Confirm search / Jump to next field |
+| Esc | Close modal |
+| R | Refresh data |
 
 ## License
 
