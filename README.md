@@ -30,6 +30,16 @@ Configure optional environment variables:
 ```bash
 # Server port (default: 3000)
 PORT=3000
+
+# Default station for monitor
+DEFAULT_STATION=Hamburg Hbf
+
+# Default journey for planner
+DEFAULT_PLANNER_FROM=Hamburg Hbf
+DEFAULT_PLANNER_TO=Berlin Hbf
+
+# Refresh interval in milliseconds (default: 30000)
+UPDATE_INTERVAL=30000
 ```
 
 ## Run
@@ -40,8 +50,9 @@ bun run server.ts
 
 Open in browser:
 
-- Monitor: http://localhost:3000
-- Planner: http://localhost:3000/planner.html
+```
+http://localhost:3000
+```
 
 ## Deep Linking
 
@@ -57,7 +68,8 @@ Bookmark stations or share routes via URL parameters:
 | Key | Action |
 |-----|--------|
 | S | Open search / planner modal |
-| Enter | Confirm search / Jump to next field |
+| Tab | Jump to next field |
+| Enter | Confirm search |
 | Esc | Close modal |
 | R | Refresh data |
 

@@ -1,607 +1,77 @@
 <!doctype html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Departure Monitor</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
 
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <title>HH Transit</title>
 
-    <style>
-        body {
-            background: #0a0a0a;
-            color: #e5e5e5;
-            font-family: monospace;
-            padding: 0 20px;
-            margin: 0;
-            overflow-y: auto;
-            -webkit-tap-highlight-color: transparent;
-        }
-
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #444;
-            padding: 25px 0 15px 0;
-            position: sticky;
-            top: 0;
-            background: #0a0a0a;
-            z-index: 100;
-        }
-
-        #station-title {
-            margin: 0;
-            font-size: 1.8rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
-        #live-clock {
-            font-size: 28px;
-            font-weight: bold;
-            color: #aaa;
-            padding-left: 20px;
-        }
-
-        #board {
-            padding-bottom: 100px;
-            width: 100%;
-        }
-
-        .departures {
-            display: flex;
-            border-bottom: 1px solid #222;
-            padding: 18px 0;
-            font-size: 1.4rem;
-            align-items: center;
-        }
-
-        .line {
-            width: 120px;
-            font-weight: bold;
-        }
-
-        .dir {
-            flex-grow: 1;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            padding-right: 15px;
-        }
-
-        .time {
-            width: 120px;
-            text-align: right;
-        }
-
-        .delay {
-            width: 90px;
-            text-align: right;
-            font-size: 1.1rem;
-            font-weight: bold;
-        }
-
-        .red { color: #ff4444; }
-        .green { color: #44ff44; }
-
-        footer {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #111;
-            padding: 15px 0; 
-            color: #888;
-            font-size: 16px;
-            border-top: 2px solid #444;
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); 
-            align-items: center;
-            justify-items: center;
-            z-index: 200;
-        }
-
-        .footer-btn {
-            cursor: pointer;
-            padding: 12px 0;
-            width: 80%;
-            text-align: center;
-            border: 1px solid #444;
-            background: #1a1a1a;
-            text-transform: uppercase;
-            font-weight: bold;
-            font-family: monospace;
-            transition: all 0.1s;
-        }
-
-        #sync-status {
-            font-weight: bold;
-            letter-spacing: 1px;
-            text-align: center;
-            width: 100%;
-        }
-
-        #search-modal, #map-modal {
-            display: none;
-            position: fixed;
-            top: 15%;
-            left: 50%;
-            transform: translate(-50%, 0);
-            background: #0a0a0a;
-            border: 3px solid #fdb913;
-            padding: 30px;
-            z-index: 1000;
-            width: 90%;
-            max-width: 600px;
-            box-shadow: 0 0 50px rgba(0, 0, 0, 1);
-        }
-
-        #map-modal {
-            max-width: 800px;
-            height: 60vh;
-        }
-
-        .modal-overlay {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.9);
-            z-index: 900;
-        }
-
-        input {
-            background: #1a1a1a;
-            border: 1px solid #444;
-            color: #fff;
-            padding: 20px;
-            width: 100%;
-            box-sizing: border-box;
-            font-family: monospace;
-            font-weight: bold;
-            font-size: 22px;
-            outline: none;
-        }
-
-        input:focus {
-            border-color: #fdb913;
-        }
-
-        .location-row {
-            font-size: 15px;
-            color: #fdb913;
-            padding: 5px 0 10px 120px;
-            margin-top: -15px;
-        }
-        
-        #map-container {
-            width: 100%;
-            height: calc(100% - 50px);
-            border: 1px solid #444;
-            background: #1a1a1a;
-        }
-
-        .map-header {
-            margin-bottom: 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: #fdb913;
-            font-weight: bold;
-            font-size: 1.4rem;
-        }
-
-        .close-map-btn {
-            cursor: pointer;
-            color: #aaa;
-            font-size: 1.2rem;
-        }
-
-        .close-map-btn:hover {
-            color: #fff;
-        }
-
-        @media screen and (max-width: 480px) {
-            
-            header {
-                padding: 10px 0 8px 0 !important;
-            }
-
-            #station-title {
-                font-size: 1rem !important;
-                letter-spacing: 1px;
-            }
-
-            #live-clock {
-                font-size: 18px !important;
-                padding-left: 10px !important;
-            }
-
-            .departures {
-                display: grid !important;
-                grid-template-areas: 
-                    "line delay"
-                    "dir time";
-                grid-template-columns: 1fr auto;
-                gap: 4px;
-                padding: 12px 0;
-                font-size: 1.1rem;
-            }
-
-            .line {
-                grid-area: line;
-                width: auto !important;
-                font-size: 1.2rem;
-            }
-            .delay {
-                grid-area: delay;
-                width: auto !important;
-                text-align: right;
-            }
-            .dir { 
-                grid-area: dir; 
-                width: auto !important; 
-                font-size: 0.9rem; 
-                color: #bbb; 
-                padding-top: 2px;
-            }
-            .time  {
-                grid-area: time;
-                width: auto !important;
-                text-align: right;
-            }
-
-            .location-row {
-                padding-left: 0 !important;
-                padding-top: 10px;
-                font-size: 11px;
-            }
-
-            footer {
-                font-size: 11px !important;
-            }
-
-            .footer-btn {
-                padding: 6px 0 !important;
-                margin: 0 5px !important;
-                width: 90% !important;
-                font-size: 10px !important;
-            }
-
-            #sync-status {
-                font-size: 10px !important;
-            }
-
-            #board {
-                padding-bottom: 80px !important;
-            }
-
-            #search-modal, #map-modal {
-                top: 0 !important;
-                left: 0 !important;
-                transform: none !important;
-                width: 100% !important;
-                height: 100% !important;
-                padding: 60px 20px 20px 20px !important;
-                border: none !important;
-                box-sizing: border-box;
-            }
-
-            .map-header {
-                font-size: 1.2rem !important;
-            }
-
-            input {
-                font-size: 1.2rem !important;
-                padding: 15px !important;
-                background: #111 !important;
-            }
-        }
-    </style>
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <div id="shell">
+        <header id="header">
+            <span id="app-title">HH Transit</span>
+            <button class="tab-btn active" id="tab-monitor" onclick="switchTab('monitor')">Monitor</button>
+            <button class="tab-btn" id="tab-planner" onclick="switchTab('planner')">Planner</button>
+            <div id="header-right">
+                <span id="board-label"></span>
+                <span id="live-clock">--:--</span>
+            </div>
+        </header>
 
-    <div id="modal-overlay" class="modal-overlay" onclick="closeAllModals()"></div>
+        <main id="content">
+            <div class="tab-panel active" id="panel-monitor">
+                <div id="monitor-content">
+                    <div class="board-message">Loading data...</div>
+                </div>
+            </div>
+            <div class="tab-panel" id="panel-planner">
+                <div id="planner-content">
+                    <div class="board-message">Press S to plan a route</div>
+                </div>
+            </div>
+        </main>
 
-    <header>
-        <h1 id="station-title">LOADING...</h1>
-        <div id="live-clock">00:00</div>
-    </header>
-
-    <main id="board"></main>
-
-    <div id="map-modal">
-        <div class="map-header">
-            <span id="map-info">LIVE POSITION</span>
-            <span class="close-map-btn" onclick="closeMap()">Close [ESC]</span>
-        </div>
-        <div id="map-container"></div>
+        <footer id="footer">
+            <span class="fkey">1</span><span class="flabel">Monitor</span>
+            <span class="fkey">2</span><span class="flabel">Planner</span>
+            <span class="fkey">S</span><span class="flabel">Search</span>
+            <span class="fkey">R</span><span class="flabel">Refresh</span>
+            <span id="sync-status" class="dim">--</span>
+        </footer>
     </div>
 
-    <footer>
-        <div class="footer-btn" onclick="openSearch()">Search [S]</div>
-        <div class="footer-btn" onclick="refreshNow()">Refresh [R]</div>
-        <div id="sync-status">LIVE</div>
-    </footer>
+    <div class="modal-overlay" id="modal-overlay" onclick="closeModal()"></div>
 
-    <div id="search-modal">
-        <div class="map-header">
-            <span id="search-info">STATION SEARCH</span>
-            <span class="close-map-btn" onclick="closeSearch()">Close [ESC]</span>
+    <div class="modal" id="search-modal">
+        <div class="modal-title">
+            <span>Search Station</span>
+            <button class="modal-close" onclick="closeModal()">×</button>
         </div>
-        <div style="margin-top: 20px;">
-            <input type="text" id="search-input" placeholder="Enter station name..." autocomplete="off" />
+        <div class="field">
+            <div class="field-label">Station</div>
+            <input type="text" id="search-input" placeholder="e.g. Hamburg Hbf" autocomplete="off">
         </div>
+        <button class="modal-btn" onclick="submitSearch()">Search</button>
     </div>
 
-    <script>
-        const App = {
-            currentStation: null,
-            refreshIntervalMs: 30000,
-            map: null,
-            marker: null,
-            busIcon: L.icon({
-                iconUrl: "bus.png",
-                iconSize: [50, 50],
-                iconAnchor: [25, 40]
-            })
-        };
+    <div class="modal" id="planner-modal">
+        <div class="modal-title">
+            <span>Plan Journey</span>
+            <button class="modal-close" onclick="closeModal()">×</button>
+        </div>
+        <div class="field">
+            <div class="field-label">From</div>
+            <input type="text" id="input-from" placeholder="Origin..." autocomplete="off">
+        </div>
+        <div class="field">
+            <div class="field-label">To</div>
+            <input type="text" id="input-to" placeholder="Destination..." autocomplete="off">
+        </div>
+        <button class="modal-btn" onclick="submitPlanner()">Plan Route</button>
+    </div>
 
-        const ui = {
-            stationTitle: document.getElementById("station-title"),
-            clock: document.getElementById("live-clock"),
-            board: document.getElementById("board"),
-            status: document.getElementById("sync-status"),
-            searchInput: document.getElementById("search-input"),
-            modalOverlay: document.getElementById("modal-overlay"),
-            mapModal: document.getElementById("map-modal"),
-            searchModal: document.getElementById("search-modal"),
-            mapContainerId: "map-container"
-        };
-
-        function normalizeStationName(name) {
-            if (!name) return "";
-            let s = String(name)
-                .replace(/-/g, " ")
-                .replace(/\//g, " ")
-                .replace(/\s*\(\s*/g, " (")
-                .replace(/\s*\)\s*/g, ") ");
-            s = s.replace(/\s+/g, " ").trim();
-            const hubs = ["hbf", "airport", "altona", "dammtor", "harburg"];
-            if (hubs.some(h => s.toLowerCase().includes(h))) return s;
-            return s.split(/\s+/).filter(w => !["hamburg", "hh"].includes(w.toLowerCase())).join(" ").trim();
-        }
-
-        function getLineStyle(departure) {
-            const raw = String((departure.line && departure.line.name) || "");
-            const name = raw.replace(/^BUS\s+/i, "");
-            if (name.startsWith("U")) return { text: name, color: "#006192" };
-            if (name.startsWith("S")) return { text: name, color: "#2ea13d" };
-            if (name.startsWith("A")) return { text: name, color: "#fdb913" };
-            if (name.startsWith("ICE")) return { text: name, color: "#ffffff" };
-            if (/^(RE|RB)/i.test(name)) return { text: name, color: "#af00af" };
-            return { text: name || "-", color: "#e2001a" };
-        }
-
-        function formatTime(iso) {
-            if (!iso) return "-";
-            const d = new Date(iso);
-            if (isNaN(d)) return "-";
-            return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        }
-
-        function computeDelayMinutes(seconds) {
-            if (seconds == null) return 0;
-            const mins = Math.round(Number(seconds) / 60);
-            return isFinite(mins) ? mins : 0;
-        }
-
-        async function searchStations(query, updateUrl = true) {
-            ui.status.innerText = "SEARCHING...";
-            try {
-                const res = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
-                if (!res.ok) throw new Error("search failed");
-                const list = await res.json();
-                const found = Array.isArray(list) ? list.find(r => r.type === "station" || r.type === "stop") : null;
-                if (!found) {
-                    ui.status.innerText = "NOT FOUND";
-                    return;
-                }
-                App.currentStation = found;
-                if (updateUrl) {
-                    const u = new URL(window.location);
-                    u.searchParams.set("q", query);
-                    window.history.pushState({}, "", u);
-                }
-                await refreshNow();
-            } catch (e) {
-                ui.status.innerText = "SEARCH ERROR";
-            }
-        }
-
-        async function fetchDepartures(stationId) {
-            const res = await fetch(`/api/departures?stationId=${encodeURIComponent(stationId)}`);
-            if (!res.ok) throw new Error("fetch departures failed");
-            return await res.json();
-        }
-
-        function clearBoard() {
-            while (ui.board.firstChild) ui.board.removeChild(ui.board.firstChild);
-        }
-
-        function createDepartureRow(dep) {
-            const wrapper = document.createElement("div");
-            wrapper.style.borderBottom = "1px solid #222";
-
-            const row = document.createElement("div");
-            row.className = "departures";
-            row.style.borderBottom = "none";
-
-            const style = getLineStyle(dep);
-            const lineDiv = document.createElement("div");
-            lineDiv.className = "line";
-            lineDiv.textContent = style.text;
-            lineDiv.style.color = style.color;
-
-            const dirDiv = document.createElement("div");
-            dirDiv.className = "dir";
-            dirDiv.textContent = normalizeStationName(dep.direction);
-
-            const timeDiv = document.createElement("div");
-            timeDiv.className = "time";
-            timeDiv.textContent = formatTime(dep.when || dep.plannedWhen);
-
-            const delayMinutes = computeDelayMinutes(dep.delay);
-            const delayDiv = document.createElement("div");
-            delayDiv.className = "delay " + (delayMinutes > 0 ? "red" : "green");
-            delayDiv.textContent = delayMinutes > 0 ? `+${delayMinutes}m` : "OK";
-
-            row.appendChild(lineDiv);
-            row.appendChild(dirDiv);
-            row.appendChild(timeDiv);
-            row.appendChild(delayDiv);
-            wrapper.appendChild(row);
-
-            const pos = dep.location || dep.currentTripPosition;
-            if (pos && typeof pos.latitude === "number" && typeof pos.longitude === "number") {
-                const locRow = document.createElement("div");
-                locRow.className = "location-row";
-                locRow.style.cursor = "pointer";
-                locRow.textContent = "Show on map";
-                locRow.addEventListener("click", () => openMap(pos.latitude, pos.longitude));
-                wrapper.appendChild(locRow);
-            }
-
-            return wrapper;
-        }
-
-        async function renderBoard(departures) {
-            clearBoard();
-            if (!Array.isArray(departures) || departures.length === 0) {
-                const empty = document.createElement("div");
-                empty.style.padding = "20px 0";
-                empty.textContent = "No departures";
-                ui.board.appendChild(empty);
-                return;
-            }
-
-            departures.sort((a, b) => {
-                const ta = new Date(a.when || a.plannedWhen);
-                const tb = new Date(b.when || b.plannedWhen);
-                return ta - tb;
-            });
-
-            const frag = document.createDocumentFragment();
-            for (const d of departures) {
-                frag.appendChild(createDepartureRow(d));
-            }
-            ui.board.appendChild(frag);
-        }
-
-        async function refreshNow() {
-            if (!App.currentStation) return;
-            ui.status.innerText = "UPDATING...";
-            try {
-                const departures = await fetchDepartures(App.currentStation.id);
-                ui.stationTitle.innerText = normalizeStationName(App.currentStation.name);
-                await renderBoard(departures);
-                ui.status.innerText = "LIVE";
-            } catch (e) {
-                ui.status.innerText = "ERROR";
-            }
-        }
-
-        function openMap(lat, lon) {
-            ui.mapModal.style.display = "block";
-            ui.modalOverlay.style.display = "block";
-            setTimeout(() => {
-                if (!App.map) {
-                    App.map = L.map(ui.mapContainerId).setView([lat, lon], 15);
-                    L.tileLayer("https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png", {
-                        attribution: "© OpenStreetMap"
-                    }).addTo(App.map);
-                    App.marker = L.marker([lat, lon], { icon: App.busIcon }).addTo(App.map);
-                } else {
-                    App.map.setView([lat, lon], 15);
-                    if (!App.marker) App.marker = L.marker([lat, lon], { icon: App.busIcon }).addTo(App.map);
-                    else App.marker.setLatLng([lat, lon]);
-                    App.map.invalidateSize();
-                }
-            }, 200);
-        }
-
-        function closeMap() {
-            ui.mapModal.style.display = "none";
-            ui.modalOverlay.style.display = "none";
-        }
-
-        function openSearch() {
-            ui.searchModal.style.display = "block";
-            ui.modalOverlay.style.display = "block";
-            setTimeout(() => ui.searchInput.focus(), 100);
-        }
-
-        function closeSearch() {
-            ui.searchModal.style.display = "none";
-            ui.modalOverlay.style.display = "none";
-            ui.searchInput.value = "";
-            if (document.activeElement) document.activeElement.blur();
-        }
-
-        function closeAllModals() {
-            closeSearch();
-            closeMap();
-            if (document.activeElement) document.activeElement.blur();
-        }
-
-        window.addEventListener("keydown", (e) => {
-            if (e.key === "Escape") {
-                closeAllModals();
-                return;
-            }
-
-            const searchOpen = ui.searchModal.style.display === "block" || ui.mapModal.style.display === "block";
-            if (searchOpen) return;
-
-            const k = e.key.toLowerCase();
-            if (k === "s") {
-                e.preventDefault();
-                openSearch();
-            }
-            if (k === "r") {
-                refreshNow();
-            }
-        });
-
-        ui.searchInput.addEventListener("keypress", (e) => {
-            if (e.key === "Enter") {
-                const q = ui.searchInput.value.trim();
-                if (!q) return;
-                searchStations(q);
-                closeSearch();
-            }
-        });
-
-        function updateClock() {
-            ui.clock.innerText = new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
-        }
-
-        updateClock();
-        setInterval(updateClock, 1000);
-        setInterval(() => {
-            if (App.currentStation) refreshNow();
-        }, App.refreshIntervalMs);
-
-        const params = new URLSearchParams(window.location.search);
-        const initialQuery = params.get("q") || "Hamburg Hbf";
-        searchStations(initialQuery, false);
-    </script>
+    <script src="script.js"></script>
 </body>
 </html>
